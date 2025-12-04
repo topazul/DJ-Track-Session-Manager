@@ -15,6 +15,11 @@ class DJLibraryService {
 public:
     DJLibraryService(const Playlist& playlist);
     DJLibraryService() = default;
+   // Destructor declaration
+    ~DJLibraryService();
+   // Disable copy constructor and copy assignment operator - as implementation of rule of 3
+    DJLibraryService(const DJLibraryService&) = delete;
+    DJLibraryService& operator=(const DJLibraryService&) = delete;
 
     /**
      * @brief Build the track library from parsed config data

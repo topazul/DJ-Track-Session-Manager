@@ -40,6 +40,13 @@ public:
      */
     ~Playlist();
 
+    // to implement the Rule of 3 we added the copy contractor and thr copy asaignment opperator
+    
+    Playlist(const Playlist& other);
+
+    Playlist& operator=(const Playlist& other); 
+    // Rule of 3 - End
+
     /**
      * Add a track to the playlist
      * @param track Pointer to AudioTrack to add

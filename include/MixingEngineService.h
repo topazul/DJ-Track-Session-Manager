@@ -18,6 +18,9 @@ private:
 public:
     MixingEngineService();
     ~MixingEngineService();
+    // Disable copy constructor and copy assignment operator - as implementation of rule of 3
+    MixingEngineService(const MixingEngineService&) = delete;
+    MixingEngineService& operator=(const MixingEngineService&) = delete;
 
     /** Contract: Load a track to the next deck per instant-transition policy
      * - @param track: reference to a cached track to be cloned for the mixer

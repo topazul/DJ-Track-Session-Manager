@@ -66,6 +66,10 @@ public:
      */
     ~DJSession();
 
+    // Disable copy constructor and copy assignment operator - as implementation of rule of 3
+    DJSession(const DJSession&) = delete;
+    DJSession& operator=(const DJSession&) = delete;
+
     // ========== ORCHESTRATION METHODS ==========
 
 
