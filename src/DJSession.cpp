@@ -22,8 +22,8 @@ DJSession::DJSession(const std::string& name, bool play_all)
     std::cout << "DJ Session System initialized: " << session_name << std::endl;
 }
 
-
-DJSession::~DJSession() {
+// Destructor will call the destructors of member objects automatically
+DJSession::~DJSession() { 
     std::cout << "Shutting down DJ Session System: " << session_name << std::endl;
 }
 
@@ -73,24 +73,28 @@ bool DJSession::load_playlist(const std::string& playlist_name)  {
  */
 int DJSession::load_track_to_controller(const std::string& track_name) {
     // Your implementation here
-    AudioTrack* track = library_service.findTrack(track_name);
+    AudioTrack* track = library_service.findTrack(track_name); // find track in library
+    // track not found
     if (track == nullptr) {
         std::cerr << "[ERROR] Track '" << track_name << "' not found in library." << std::endl;
         stats.errors++;
         return 0; // MISS due to not found
     }
     std::cout << "[System] Loading track '" << track_name << "' to controller..." << std::endl;
-    int res = controller_service.loadTrackToCache(*track);
+    int res = controller_service.loadTrackToCache(*track); // load track to cache, the func will clone it.
     // HIT
     if(res == 1){ 
+        controller_service.displayCacheStatus(); 
         stats.cache_hits++;
     }
     // MISS
-     else if(res == 0){ 
+    else if(res == 0){ 
+        controller_service.displayCacheStatus(); 
         stats.cache_misses++;
     }
     // MISS with eviction
      else if(res == -1){
+        controller_service.displayCacheStatus();
         stats.cache_misses++;
         stats.cache_evictions++;
     }
@@ -113,7 +117,7 @@ bool DJSession::load_track_to_mixer_deck(const std::string& track_title) {
         return false;
     }
     // load track to mixer deck
-    int res = mixing_service.loadTrackToDeck(*track);
+    int res = mixing_service.loadTrackToDeck(*track); //load track to deck, the func will clone it.
     if(res == -1){ // failed to load to deck
         stats.errors++;
         std::cerr << "[ERROR] Failed to load track '" << track_title << "' to mixer deck." << std::endl;
@@ -127,6 +131,7 @@ bool DJSession::load_track_to_mixer_deck(const std::string& track_title) {
         stats.deck_loads_b++;
         stats.transitions++;
     }
+    mixing_service.displayDeckStatus(); // display deck status
     return true; // successfully loaded to deck 0 or deck 1
 }
 
@@ -158,72 +163,59 @@ void DJSession::simulate_dj_performance() {
     std::cout << "Cache Capacity: " << session_config.controller_cache_size << " slots (LRU policy)" << std::endl;
     std::cout << "\n--- Processing Tracks ---" << std::endl;
 
-    std::cout << "TODO: Implement the DJ performance simulation workflow here." << std::endl;
     // Your implementation here
     
-    
-    // --- מכאן מתחיל המימוש שלך ---
-
-    // הכנת רשימת הפלייליסטים לניגון
-    std::vector<std::string> playlists_to_process;
-
+    std::vector<std::string> playlists_to_process; //make a vector of playlists to process
+    //auto mode -A 
     if (play_all) {
-        // מצב אוטומטי (-A): טוען את כל הפלייליסטים וממיין אותם
-        for (const auto& pair : session_config.playlists) {
+        //add all playlist names to vector
+        for (const auto& pair : session_config.playlists) { //pair is <playlist_name, vector<track_indices>>
             playlists_to_process.push_back(pair.first);
         }
-        // מיון לפי סדר אלפביתי כדי להבטיח סדר דטרמיניסטי
+        //sort the playlist names alphabetically (using std::sort)
         std::sort(playlists_to_process.begin(), playlists_to_process.end());
     }
 
     // הלולאה הראשית: רצה כל עוד יש פלייליסטים לנגן (ב-Play All) או המשתמש לא ביטל (ב-Interactive)
     while (true) { //לא מבינים למה זה טרו
         std::string current_playlist_name;
-
+        //if in auto mode -A check if there are playlists to process
         if (play_all) {
-            // במצב אוטומטי: לוקחים את הבא בתור, או יוצאים אם נגמר
             if (playlists_to_process.empty()) {
                 break;
             }
-            current_playlist_name = playlists_to_process.front();
-            playlists_to_process.erase(playlists_to_process.begin());
-        } else {
-            // במצב אינטראקטיבי: מציגים תפריט למשתמש
+
+            current_playlist_name = playlists_to_process.front(); //get the first playlist name
+            playlists_to_process.erase(playlists_to_process.begin()); //remove the processed playlist from vector
+        } 
+        //else interactive mode -I display menu to select playlist
+        else {
             current_playlist_name = display_playlist_menu_from_config();
             if (current_playlist_name.empty()) {
-                break; // המשתמש בחר "Cancel"
+                break; //user cancelled
             }
         }
 
-        // --- עיבוד הפלייליסט שנבחר ---
-        
-        // טעינת הפלייליסט לספרייה (ממלא את track_titles)
+        //load the selected playlist
         if (!load_playlist(current_playlist_name)) {
             std::cerr << "[ERROR] Failed to load playlist: " << current_playlist_name << std::endl;
             continue;
         }
+        //reverse the track titles to process in order
+        std::reverse(track_titles.begin(), track_titles.end());
 
-        std::cout << "\n--- Processing Tracks ---" << std::endl;
-
-        // לולאה פנימית: מעבר על כל שיר בפלייליסט
+        //for each track title in the playlist, load to controller and then to mixer deck
         for (const std::string& title : track_titles) {
-            std::cout << "\n-- Processing: " << title << std::endl;
+            std::cout << "\n--- Processing: " << title << " ---" <<std::endl;
             stats.tracks_processed++;
-
-            // שלב 1: טעינה לקונטרולר (Cache)
-            // הפונקציה כבר מעדכנת סטטיסטיקות Cache (HIT/MISS)
             load_track_to_controller(title);
-
-            // שלב 2: טעינה למיקסר (Deck)
-            // הפונקציה כבר מעדכנת סטטיסטיקות Deck (Loads/Transitions)
             load_track_to_mixer_deck(title);
         }
 
-        // סיום פלייליסט: הדפסת סיכום
+        //after finishing the playlist, print session summary
         print_session_summary();
 
-        // איפוס סטטיסטיקות לקראת הפלייליסט הבא
-        stats = SessionStats(); 
+        
     }
     std::cout << "Session cancelled by user or all playlists played." << std::endl;
 }

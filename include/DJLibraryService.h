@@ -14,7 +14,7 @@
 class DJLibraryService {
 public:
     DJLibraryService(const Playlist& playlist);
-    DJLibraryService() = default;
+    DJLibraryService(): playlist(), library() {}
    // Destructor declaration
     ~DJLibraryService();
    // Disable copy constructor and copy assignment operator - as implementation of rule of 3

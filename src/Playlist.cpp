@@ -8,6 +8,9 @@ Playlist::Playlist(const std::string& name)
 }
 // TODO: Fix memory leaks!
 // Students must fix this in Phase 1
+
+//we chose to own the AudioTrack pointers in the playlist.
+
 Playlist::~Playlist() {
     #ifdef DEBUG
     std::cout << "Destroying playlist: " << playlist_name << std::endl;
@@ -31,7 +34,6 @@ head(nullptr), playlist_name(other.playlist_name), track_count(other.track_count
         return;
     }
     this->head = new PlaylistNode(other.head->track);
-
     PlaylistNode* currother = other.head->next;
     PlaylistNode* currthis = this->head;
     while(currother){
@@ -79,18 +81,8 @@ void Playlist::add_track(AudioTrack* track) {
     }
     //use the track inserted to the fuction , its a clone so we own it
     PlaylistNode* new_node = new PlaylistNode(track);
-    //if the list is empty add the new node as head
-    if (!head){ 
-        head = new_node;
-    }
-    //else go to the end and add the new node
-    else{
-        PlaylistNode* current = head;
-        while (current->next != nullptr) {
-            current = current->next;
-        }
-        current->next=new_node;
-    }
+    new_node->next = head;
+    head = new_node;
     // Increment track count
     track_count++;
     std::cout << "Added '" << track->get_title() << "' to playlist '" 
@@ -114,8 +106,8 @@ void Playlist::remove_track(const std::string& title) {
         } else {
             head = current->next;
         }
-        delete current->track; // Free the AudioTrack memory
-        delete current;  // Free the node memory 
+        delete current->track; // Free the AudioTrack memory, since we own it
+        delete current;  // Free the node memory, since we own it
         track_count--;
         std::cout << "Removed '" << title << "' from playlist" << std::endl;
 

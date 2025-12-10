@@ -14,7 +14,7 @@ void WAVTrack::load() {
     // TODO: Implement realistic WAV loading simulation
     // NOTE: Use exactly 2 spaces before the arrow (→) character
     std::cout << "[WAVTrack::load] Loading WAV: \"" << title
-              << "\" at " << sample_rate << " Hz/" << bit_depth << "bit (uncompressed)...\n";
+              << "\" at " << sample_rate << "Hz/" << bit_depth << "bit (uncompressed)...\n";
     long long size = (long long)duration_seconds * sample_rate * (bit_depth / 8) * 2;
     std::cout << "  → Estimated file size: " << size << " bytes\n";
     std::cout << "  → Fast loading due to uncompressed format.\n";
@@ -30,8 +30,7 @@ void WAVTrack::analyze_beatgrid() {
     // 3. Print number of beats and mention uncompressed precision
     // should print "  → Estimated beats: <beats>  → Precision factor: 1.0 (uncompressed audio)"
     double beats = (duration_seconds / 60.0) * bpm;
-    std::cout << "  → Estimated beats: " << beats <<"\n";  
-    std::cout << "  → Compression precision factor: 1 (uncompressed audio)\n"; 
+    std::cout << "  → Estimated beats: " << (int)beats << "  → Precision factor: 1 (uncompressed audio)\n";
 
 }
 
@@ -49,11 +48,15 @@ double WAVTrack::get_quality_score() const {
     if(bit_depth >= 24)
         base_score = base_score + 5;
     base_score = std::max(0.0, std::min(base_score, 100.0));
+    
+    std::cout << "[WAVTrack::get_quality_score] \"" << title 
+              << "\" score = " << (int)base_score << "/100" << std::endl;
+    
     return base_score; 
 
 }
 
 PointerWrapper<AudioTrack> WAVTrack::clone() const {
     // TODO: Implement the clone method
-    return PointerWrapper<AudioTrack>(new WAVTrack(*this)); 
+    return PointerWrapper<AudioTrack>(new WAVTrack(*this)); //return a clone of the current object wrapped in PointerWrapper
 }

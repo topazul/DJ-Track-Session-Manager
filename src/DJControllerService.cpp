@@ -23,7 +23,7 @@ int DJControllerService::loadTrackToCache(AudioTrack& track) {
     }
     cloned_track->load(); 
     cloned_track->analyze_beatgrid();
-    if(cache.put(std::move(cloned_track))){
+    if(cache.put(std::move(cloned_track))){//returns true if eviction happened, uses move semantics beacause no copy constructor in PointerWrapper
         return -1; //MISS with eviction
     }
     return 0; //MISS without eviction

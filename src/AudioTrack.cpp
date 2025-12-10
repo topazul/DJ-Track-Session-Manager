@@ -36,7 +36,7 @@ AudioTrack::~AudioTrack() {
     std::cout << "AudioTrack destructor called for: " << title << std::endl;
     #endif
     // Your code here...
-    delete[] waveform_data;
+    delete[] waveform_data; //delete the only allocated memory
 }
 
 AudioTrack::AudioTrack(const AudioTrack& other):
@@ -82,10 +82,9 @@ AudioTrack& AudioTrack::operator=(const AudioTrack& other) {
 }
 
 AudioTrack::AudioTrack(AudioTrack&& other) noexcept:
-    title(std::move(other.title)),
-    duration_seconds(other.duration_seconds),
-    bpm(other.bpm),
-    waveform_data(other.waveform_data), // steal the pointer
+    title(std::move(other.title)), artists(std::move(other.artists)),
+    duration_seconds(other.duration_seconds), bpm(other.bpm), 
+    waveform_data(other.waveform_data),
     waveform_size(other.waveform_size)
 
 {
@@ -108,7 +107,7 @@ AudioTrack& AudioTrack::operator=(AudioTrack&& other) noexcept {
     if(this == &other){
         return *this;
     }
-    delete[] this->waveform_data;
+    delete[] this->waveform_data; //clean the memory of the previous AudioTrack
     this->waveform_data = other.waveform_data;
     this->waveform_size = other.waveform_size;
     other.waveform_size = 0;

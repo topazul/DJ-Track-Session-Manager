@@ -38,7 +38,7 @@ public:
     /**
      * Destructor
      */
-    ~Playlist();
+     ~Playlist();
 
     // to implement the Rule of 3 we added the copy contractor and thr copy asaignment opperator
     
