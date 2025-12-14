@@ -164,60 +164,63 @@ void DJSession::simulate_dj_performance() {
     std::cout << "\n--- Processing Tracks ---" << std::endl;
 
     // Your implementation here
-    
-    std::vector<std::string> playlists_to_process; //make a vector of playlists to process
-    //auto mode -A 
-    if (play_all) {
-        //add all playlist names to vector
-        for (const auto& pair : session_config.playlists) { //pair is <playlist_name, vector<track_indices>>
-            playlists_to_process.push_back(pair.first);
-        }
-        //sort the playlist names alphabetically (using std::sort)
-        std::sort(playlists_to_process.begin(), playlists_to_process.end());
-    }
-
-    // הלולאה הראשית: רצה כל עוד יש פלייליסטים לנגן (ב-Play All) או המשתמש לא ביטל (ב-Interactive)
-    while (true) { //לא מבינים למה זה טרו
-        std::string current_playlist_name;
-        //if in auto mode -A check if there are playlists to process
+    std::vector<std::string> playlist_to_play;
+    bool session_active = true;
+    //main loop
+    while (session_active) {
+        playlist_to_play.clear();
+        // if auto mode -A, add all playlists to vector
         if (play_all) {
-            if (playlists_to_process.empty()) {
+            for (const auto& pair : session_config.playlists) {
+                playlist_to_play.push_back(pair.first);
+            }
+            //sort playlist names alphabetically
+            std::sort(playlist_to_play.begin(), playlist_to_play.end());
+
+            //stops the main loop after playing all playlists
+            if (playlist_to_play.empty()) {
                 break;
             }
 
-            current_playlist_name = playlists_to_process.front(); //get the first playlist name
-            playlists_to_process.erase(playlists_to_process.begin()); //remove the processed playlist from vector
         } 
-        //else interactive mode -I display menu to select playlist
+        // else interactive mode -I, display menu to select playlist
         else {
-            current_playlist_name = display_playlist_menu_from_config();
-            if (current_playlist_name.empty()) {
-                break; //user cancelled
+            std::string selection = display_playlist_menu_from_config();
+            if (selection.empty()) {
+                break;
+            }      
+            playlist_to_play.push_back(selection);
+        }
+        //for each playlist in the vector, load and process tracks
+        for (const std::string& playlist_name : playlist_to_play) {
+            if (!load_playlist(playlist_name)) {
+                std::cerr << "[ERROR] Failed to load playlist: " << playlist_name << std::endl;
+                continue;
             }
+            //reverse track titles to process in order
+            std::reverse(track_titles.begin(), track_titles.end());
+            //for each track in the playlist, load to controller and then to mixer deck
+            for (const std::string& track_name : track_titles) {
+                std::cout << "\n--- Processing: " << track_name << " ---" << std::endl;
+                stats.tracks_processed++;
+                
+                load_track_to_controller(track_name);
+                
+                if (!load_track_to_mixer_deck(track_name)) {
+                    std::cerr << "[ERROR] Failed to load track to mixer deck: " << track_name << std::endl;
+                    continue;
+                }   
+            } 
+            print_session_summary(); // print summary after each playlist
         }
-
-        //load the selected playlist
-        if (!load_playlist(current_playlist_name)) {
-            std::cerr << "[ERROR] Failed to load playlist: " << current_playlist_name << std::endl;
-            continue;
+        //if in auto mode -A, end session after playing all playlists
+        if (play_all) {
+            session_active = false;
         }
-        //reverse the track titles to process in order
-        std::reverse(track_titles.begin(), track_titles.end());
-
-        //for each track title in the playlist, load to controller and then to mixer deck
-        for (const std::string& title : track_titles) {
-            std::cout << "\n--- Processing: " << title << " ---" <<std::endl;
-            stats.tracks_processed++;
-            load_track_to_controller(title);
-            load_track_to_mixer_deck(title);
-        }
-
-        //after finishing the playlist, print session summary
-        print_session_summary();
-
-        
     }
+    //end of main loop
     std::cout << "Session cancelled by user or all playlists played." << std::endl;
+
 }
 
 

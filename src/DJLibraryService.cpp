@@ -101,7 +101,7 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
                                                const std::vector<int>& track_indices) {
     // Your implementation here
 
-    std::cout << " [INFO] Loading playlist: " << playlist_name << std::endl;
+    std::cout << "[INFO] Loading playlist: " << playlist_name << std::endl;
     // Reset current playlist with new name
     this->playlist = Playlist(playlist_name); 
     int count = 0;
@@ -109,7 +109,7 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
     for (size_t i = 0; i < track_indices.size(); i++) {
         // Validate index range
         if (track_indices[i] < 1 || track_indices[i] > (int)library.size()) {
-            std::cout << " [WARNING] Invalid track index: " << track_indices[i] << std::endl;
+            std::cout << "[WARNING] Invalid track index: " << track_indices[i] << std::endl;
             continue;
         }
         // Retrieve track from library
@@ -130,8 +130,9 @@ void DJLibraryService::loadPlaylistFromIndices(const std::string& playlist_name,
         count++;
     }
     // Final log of playlist loading
-    std::cout << " [INFO] Playlist loaded: " 
+    std::cout << "[INFO] Playlist loaded: " 
               << playlist_name << " (" << count << " tracks)" << std::endl;
+
 }
 /**
  * TODO: Implement getTrackTitles method

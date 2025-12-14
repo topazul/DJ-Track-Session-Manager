@@ -33,11 +33,11 @@ head(nullptr), playlist_name(other.playlist_name), track_count(other.track_count
     if(other.head == nullptr){
         return;
     }
-    this->head = new PlaylistNode(other.head->track);
+    this->head = new PlaylistNode(other.head->track->clone().release()); // deep copy using clone
     PlaylistNode* currother = other.head->next;
     PlaylistNode* currthis = this->head;
     while(currother){
-        currthis->next = new PlaylistNode(currother->track);
+        currthis->next = new PlaylistNode(currother->track->clone().release()); // deep copy using clone
         currthis = currthis->next;
         currother = currother->next;
     }
@@ -52,6 +52,7 @@ Playlist& Playlist::operator=(const Playlist& other) {
     PlaylistNode* curr = this->head;
     while(curr){
         PlaylistNode* temp = curr->next;
+        delete curr->track; // delete the AudioTrack - its a clone so we own it.
         delete curr;
         curr = temp;
     }
